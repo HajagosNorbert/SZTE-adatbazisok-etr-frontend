@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { serverUrl } from "./consts"
 
 const Users = function () {
@@ -10,41 +10,71 @@ const Users = function () {
     const [newStartedTeachingOn, setNewStartedTeachingOn] = useState(new Date().toISOString().split('T')[0]);
     const [newSemesterCount, setNewSemesterCount] = useState(1);
 
-    useEffect(() => {
-        async function fetchUsers() {
-            if (!(showStudents || showInstructors)) {
-                return setUsers([])
-            }
-            const endpoint = (showStudents && showInstructors) ? '/instructorOrStudent' : (showStudents) ? '/student' : '/instructor';
-            try {
-                const res = await fetch(serverUrl + endpoint);
-                const users = await res.json();
-                setUsers(users)
-                console.log({ users })
-            } catch (e) {
-                console.log(e)
-            }
+    const fetchUsers = useCallback(async function () {
+        if (!(showStudents || showInstructors)) {
+            return setUsers([])
         }
+        try {
+            const res = await fetch(serverUrl + '/instructorOrStudent');
+            const users = await res.json();
+            const filteredUsers = users.filter(user => {
+                if (user.hallgato_kod && user.oktato_kod) return true
+                if (!showStudents && user.hallgato_kod) return false
+                if (!showInstructors && user.oktato_kod) return false
+                return true
+            })
+            setUsers(filteredUsers)
+            console.log({ filteredUsers })
+        } catch (e) {
+            console.log(e)
+        }
+    }, [showStudents, showInstructors]);
+
+    useEffect(() => {
         fetchUsers();
-    }, [showStudents, showInstructors])
+    }, [fetchUsers])
 
+    function createEndpointFromFilters() {
+        return (showStudents && showInstructors) ? '/instructorOrStudent' : (showStudents) ? '/student' : '/instructor';
+    }
 
-    const postOptions = {
-        method: 'POST',
-        body: JSON.stringify({
+    function createNewUserBodyFromFilters() {
+        const body = {
             keresztnev: newFirstname,
             vezeteknev: newLastname,
+        }
+        if (showInstructors)
+            body.tanitast_kezdte = newStartedTeachingOn
 
-        }),
-        headers: {
-            'Content-Type': 'application/json'
+        if (showStudents)
+            body.szemeszterek = newSemesterCount
+
+        return body;
+    }
+
+
+    async function handleCreatUserButtonClick() {
+        const postOptions = {
+            method: 'POST',
+            body: JSON.stringify(createNewUserBodyFromFilters()),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }
+        try {
+            await fetch(serverUrl + createEndpointFromFilters(), postOptions)
+            fetchUsers();
+        } catch (error) {
+            console.error(error);
         }
     }
 
-    const newUserButton = (showStudents && showInstructors) ?
-        <button>Új Hallgató&Oktató felhsználó</button>
-        : (showStudents) ? <button>Új Hallgató</button>
-            : <button>Új Oktató</button>;
+
+    const newUserButtonText = (showStudents && showInstructors) ?
+        'Új Hallgató&Oktató felhsználó' :
+        (showStudents) ? 'Új Hallgató' :
+            'Új Oktató'
+    const newUserButton = <button onClick={handleCreatUserButtonClick}>{newUserButtonText}</button>;
 
     return (
         <>
