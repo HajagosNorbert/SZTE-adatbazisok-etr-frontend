@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { serverUrl } from "./consts"
+import { serverUrl } from "../consts"
+import OnOffSwitch from "./OnOffSwitch";
 
 const Users = function () {
     const [users, setUsers] = useState([])
@@ -7,32 +8,39 @@ const Users = function () {
     const [showInstructors, setShowInstructors] = useState(true);
     const [newFirstname, setNewFirstname] = useState('');
     const [newLastname, setNewLastname] = useState('');
-    const [newStartedTeachingOn, setNewStartedTeachingOn] = useState(new Date().toISOString().split('T')[0]);
-    const [newSemesterCount, setNewSemesterCount] = useState(1);
+    const [newStartedTeachingOn, setNewStartedTeachingOn] = useState();
+    const [newSemesterCount, setNewSemesterCount] = useState();
+    const [isEditable, setIsEditable] = useState(true)
 
-    const fetchUsers = useCallback(async function () {
+    const updateUsers = useCallback(async function () {
         if (!(showStudents || showInstructors)) {
             return setUsers([])
         }
         try {
             const res = await fetch(serverUrl + '/instructorOrStudent');
             const users = await res.json();
-            const filteredUsers = users.filter(user => {
+            const filteredAndFormatedUsers = users.filter(user => {
                 if (user.hallgato_kod && user.oktato_kod) return true
                 if (!showStudents && user.hallgato_kod) return false
                 if (!showInstructors && user.oktato_kod) return false
                 return true
+            }).map(user => {
+                if (user.tanitast_kezdte) {
+                    user.tanitast_kezdte = user.tanitast_kezdte.split('T')[0];
+                }
+                return user;
             })
-            setUsers(filteredUsers)
-            console.log({ filteredUsers })
+
+            setUsers(filteredAndFormatedUsers)
+            console.log({ filteredAndFormatedUsers })
         } catch (e) {
             console.log(e)
         }
     }, [showStudents, showInstructors]);
 
     useEffect(() => {
-        fetchUsers();
-    }, [fetchUsers])
+        updateUsers();
+    }, [updateUsers])
 
     function createEndpointFromFilters() {
         return (showStudents && showInstructors) ? '/instructorOrStudent' : (showStudents) ? '/student' : '/instructor';
@@ -52,6 +60,14 @@ const Users = function () {
         return body;
     }
 
+    async function handleNewSemesterButtonClick() {
+        try {
+            await fetch(serverUrl + '/student/newsemester');
+            updateUsers();
+        } catch (e) {
+            console.log(e)
+        }
+    }
 
     async function handleCreatUserButtonClick() {
         const postOptions = {
@@ -63,7 +79,22 @@ const Users = function () {
         }
         try {
             await fetch(serverUrl + createEndpointFromFilters(), postOptions)
-            fetchUsers();
+            updateUsers();
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async function handleDeleteUserButtonClick(userId) {
+        const delOptions = {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }
+        try {
+            await fetch(serverUrl + '/instructorOrStudent/' + userId, delOptions)
+            updateUsers();
         } catch (error) {
             console.error(error);
         }
@@ -111,6 +142,7 @@ const Users = function () {
                 <div>
                     Tanítást kezdte:
                     <input
+                        type="date"
                         value={newStartedTeachingOn}
                         onChange={(event) => setNewStartedTeachingOn(event.target.value)}
                     />
@@ -126,17 +158,30 @@ const Users = function () {
                     />
                 </div>
             }
-            {(showInstructors || showStudents) && newUserButton}
-            <ul>
-                {
-                    users.map((user, i) => {
-                        const userType = (user.hallgato_kod && user.oktato_kod) ? 'hallgató és oktató' : (user.hallgato_kod) ? 'hallgató' : 'oktató'
-                        return (
-                            <li key={i}> Kod: {user.kod} , {user.vezeteknev} {user.keresztnev} , {userType}</li>
-                        )
-                    })
-                }
-            </ul>
+            {(showInstructors || showStudents) &&
+                <div>{newUserButton}
+                    <div> Módosítás
+                        <OnOffSwitch checkedText="Be" notCheckedText="Ki" setIsChecked={setIsEditable} isChecked={isEditable} />
+                    </div>
+                    {isEditable && <button onClick={() => handleNewSemesterButtonClick()}>Új tanév</button>}
+                    <ul>
+                        {
+                            users.map((user, i) => {
+                                const userType = (user.hallgato_kod && user.oktato_kod) ? 'hallgató és oktató' : (user.hallgato_kod) ? 'hallgató' : 'oktató'
+                                return (
+                                    <li key={i}>
+                                        {isEditable && <button
+                                            onClick={() => handleDeleteUserButtonClick(user.kod)}
+                                        >Törlés</button>}
+                                        <div > Kod: {user.kod} , {user.vezeteknev} {user.keresztnev} , {userType}, {user.szemeszterek || '#'}, {user.tanitast_kezdte || '#'}
+                                        </div>
+                                    </li>
+                                )
+                            })
+                        }
+                    </ul>
+                </div>
+            }
         </>
     )
 }

@@ -1,0 +1,29 @@
+.roundSliderContainer {
+  width:62px;
+  height: 26px;
+  background: #c24d3d;
+  border-radius: 50px;
+  cursor:pointer;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  position: relative;
+}
+
+.roundSlider{
+  width: 25px;
+  height:22px;
+  border-radius: 50%;
+  background: #fff;
+  top:2px;
+  left: 2px;
+  position:absolute;
+}
+
+#checkboxInput {
+  display: none;
+}
+
+#checkboxInput:checked + .roundSliderContainer .roundSlider {
+  transform: translateX(32px);
+}
