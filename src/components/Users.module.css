@@ -1,0 +1,75 @@
+.grid {
+  display: grid;
+  /* grid-template-rows: repeat(6, 1fr); */
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 10px;
+}
+
+.userBox {
+  display: grid;
+  
+  grid-column-gap: 6px;
+  grid-template-columns: repeat(2, 1fr);
+  padding: 5px;
+  border: 1px solid #4b3cc1;
+  background-color: #84d2f9;
+  /* justify-content :center; */
+  border-radius: 5px;
+}
+
+
+.userBox button {
+  grid-column: span 2;
+}
+
+/* ======================================= */
+/* <!-- HTML !-->
+<button class="button-24" role="button">Button 24</button> */
+
+/* CSS */
+button {
+  background: #4b3cc1;
+  border: 1px solid #4b3cc1;
+  border-radius: 6px;
+  box-shadow: rgba(0, 0, 0, 0.1) 1px 2px 4px;
+  box-sizing: border-box;
+  color: #FFFFFF;
+  cursor: pointer;
+  display: inline-block;
+  font-family: nunito,roboto,proxima-nova,"proxima nova",sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  outline: 0;
+  padding: 5px 8px;
+  text-align: center;
+  text-rendering: geometricprecision;
+  text-transform: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  vertical-align: middle;
+}
+
+button:hover,
+button:active {
+  background-color: initial;
+  background-position: 0 0;
+  color: #4b3cc1;
+}
+
+button:active {
+  opacity: .5;
+}
+
+
+button.delete {
+  background: #ff322b;
+  border: 1px solid #ff322b;
+}
+
+button.delete:hover,
+button.delete:active {
+  background-color: initial;
+  background-position: 0 0;
+  color: #ff322b;
+}

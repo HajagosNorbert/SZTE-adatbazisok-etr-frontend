@@ -1,13 +1,15 @@
 .roundSliderContainer {
   width:62px;
   height: 26px;
-  background: #c24d3d;
+  background: #4b3cc1;
   border-radius: 50px;
   cursor:pointer;
   display: flex;
   justify-content: space-around;
   align-items: center;
   position: relative;
+  color: white;
+  font-weight: bold;
 }
 
 .roundSlider{

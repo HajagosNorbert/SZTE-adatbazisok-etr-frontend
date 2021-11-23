@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { serverUrl } from "../consts"
 import OnOffSwitch from "./OnOffSwitch";
+import styles from "./Users.module.css"
 
 const Users = function () {
     const [users, setUsers] = useState([])
@@ -10,10 +11,11 @@ const Users = function () {
     const [newLastname, setNewLastname] = useState('');
     const [newStartedTeachingOn, setNewStartedTeachingOn] = useState();
     const [newSemesterCount, setNewSemesterCount] = useState();
-    const [isEditable, setIsEditable] = useState(true)
+    const [isEditable, setIsEditable] = useState(false)
 
     const updateUsers = useCallback(async function () {
         if (!(showStudents || showInstructors)) {
+            setIsEditable(false)
             return setUsers([])
         }
         try {
@@ -100,11 +102,26 @@ const Users = function () {
         }
     }
 
+    async function updateFields(id, fields) {
+        const updateOptions = {
+            method: 'PATCH',
+            body: JSON.stringify(fields),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }
+        try {
+            await fetch(serverUrl + '/user/' + id, updateOptions)
+            updateUsers();
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     const newUserButtonText = (showStudents && showInstructors) ?
-        'Új Hallgató&Oktató felhsználó' :
-        (showStudents) ? 'Új Hallgató' :
-            'Új Oktató'
+        'Új PHD felvétele' :
+        (showStudents) ? 'Új Hallgató felvétele' :
+            'Új Oktató felvétele'
     const newUserButton = <button onClick={handleCreatUserButtonClick}>{newUserButtonText}</button>;
 
     return (
@@ -163,23 +180,45 @@ const Users = function () {
                     <div> Módosítás
                         <OnOffSwitch checkedText="Be" notCheckedText="Ki" setIsChecked={setIsEditable} isChecked={isEditable} />
                     </div>
-                    {isEditable && <button onClick={() => handleNewSemesterButtonClick()}>Új tanév</button>}
-                    <ul>
+                    {(isEditable && showStudents) && <button onClick={() => handleNewSemesterButtonClick()}>Új tanév</button>}
+                    <div className={`${styles.grid}`}>
                         {
                             users.map((user, i) => {
-                                const userType = (user.hallgato_kod && user.oktato_kod) ? 'hallgató és oktató' : (user.hallgato_kod) ? 'hallgató' : 'oktató'
+                                const userType = (user.hallgato_kod && user.oktato_kod) ? 'PHD' : (user.hallgato_kod) ? 'hallgató' : 'oktató'
+                                const tanitast_kezdteElement = (!user.oktato_kod) ? null : <div> {user.tanitast_kezdte} óta tanít</div>;
+                                const szemeszterekElement = (!user.hallgato_kod) ? null : <div> {user.szemeszterek}. szemeszter</div>;
+
+                                //TODO amikor újrarendereljük a usereket, akkor a default value nem updatelődik, ami baj
+                                const keresztnevInput = <input
+                                    type="text"
+                                    defaultValue={user.keresztnev}
+                                    onBlur={(event) => updateFields(user.kod, { keresztnev: event.target.value })}
+                                />
+                                const vezeteknevInput = <input
+                                    type="text"
+                                    defaultValue={user.vezeteknev}
+                                    onBlur={(event) => updateFields(user.kod, { vezeteknev: event.target.value })}
+                                />
                                 return (
-                                    <li key={i}>
-                                        {isEditable && <button
-                                            onClick={() => handleDeleteUserButtonClick(user.kod)}
-                                        >Törlés</button>}
-                                        <div > Kod: {user.kod} , {user.vezeteknev} {user.keresztnev} , {userType}, {user.szemeszterek || '#'}, {user.tanitast_kezdte || '#'}
-                                        </div>
-                                    </li>
+                                    <div className={styles.userBox}>
+                                        {(!isEditable)
+                                            ? <div> {user.vezeteknev} {user.keresztnev}</div>
+                                            : <> {vezeteknevInput} {keresztnevInput} </>
+                                        }
+                                        <div> Kod: {user.kod} </div>
+                                        <div> {userType} felhasználó</div>
+                                        {szemeszterekElement}
+                                        {tanitast_kezdteElement}
+                                        {isEditable &&
+                                            <button className={styles.delete}
+                                                onClick={() => handleDeleteUserButtonClick(user.kod)}
+                                            >Törlés</button>}
+
+                                    </div>
                                 )
                             })
                         }
-                    </ul>
+                    </div>
                 </div>
             }
         </>
