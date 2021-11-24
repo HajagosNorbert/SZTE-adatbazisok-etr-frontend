@@ -102,7 +102,7 @@ const Users = function () {
         }
     }
 
-    async function updateFields(id, fields) {
+    async function updateFieldsInDB(id, fields) {
         const updateOptions = {
             method: 'PATCH',
             body: JSON.stringify(fields),
@@ -116,6 +116,15 @@ const Users = function () {
         } catch (error) {
             console.error(error);
         }
+    }
+
+    function onFieldUpdate(id, fields) {
+        const index = users.findIndex(user => user.kod === id);
+        setUsers([
+            ...users.slice(0, index),
+            Object.assign({}, users[index], fields),
+            ...users.slice(index + 1)
+        ]);
     }
 
     const newUserButtonText = (showStudents && showInstructors) ?
@@ -191,13 +200,15 @@ const Users = function () {
                                 //TODO amikor újrarendereljük a usereket, akkor a default value nem updatelődik, ami baj
                                 const keresztnevInput = <input
                                     type="text"
-                                    defaultValue={user.keresztnev}
-                                    onBlur={(event) => updateFields(user.kod, { keresztnev: event.target.value })}
+                                    value={user.keresztnev}
+                                    onChange={(event) => onFieldUpdate(user.kod, { keresztnev: event.target.value })}
+                                    onBlur={(event) => updateFieldsInDB(user.kod, { keresztnev: event.target.value })}
                                 />
                                 const vezeteknevInput = <input
                                     type="text"
-                                    defaultValue={user.vezeteknev}
-                                    onBlur={(event) => updateFields(user.kod, { vezeteknev: event.target.value })}
+                                    value={user.vezeteknev}
+                                    onChange={(event) => onFieldUpdate(user.kod, { vezeteknev: event.target.value })}
+                                    onBlur={(event) => updateFieldsInDB(user.kod, { vezeteknev: event.target.value })}
                                 />
                                 return (
                                     <div className={styles.userBox}>
