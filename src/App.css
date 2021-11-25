@@ -13,6 +13,13 @@
   color: white;
 }
 
+input[type=text] {
+  border-width: 1px;
+  border-color: grey;
+  border-radius: 3px;
+}
+
+
 .App-link {
   color: #61dafb;
 }

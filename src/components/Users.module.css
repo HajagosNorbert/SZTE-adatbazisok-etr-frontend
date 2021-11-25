@@ -1,5 +1,6 @@
 .grid {
   display: grid;
+  margin: 10px;
   /* grid-template-rows: repeat(6, 1fr); */
   grid-template-columns: repeat(4, 1fr);
   grid-gap: 10px;
@@ -11,7 +12,7 @@
   grid-column-gap: 6px;
   grid-template-columns: repeat(2, 1fr);
   padding: 5px;
-  border: 1px solid #4b3cc1;
+  border: 1px solid #09689E;
   background-color: #84d2f9;
   /* justify-content :center; */
   border-radius: 5px;
@@ -22,14 +23,13 @@
   grid-column: span 2;
 }
 
-/* ======================================= */
-/* <!-- HTML !-->
-<button class="button-24" role="button">Button 24</button> */
+.displayFilters {
+  display: inline;
+}
 
-/* CSS */
 button {
-  background: #4b3cc1;
-  border: 1px solid #4b3cc1;
+  background: #09689E;
+  border: 1px solid #09689E;
   border-radius: 6px;
   box-shadow: rgba(0, 0, 0, 0.1) 1px 2px 4px;
   box-sizing: border-box;
@@ -73,3 +73,4 @@ button.delete:active {
   background-position: 0 0;
   color: #ff322b;
 }
+

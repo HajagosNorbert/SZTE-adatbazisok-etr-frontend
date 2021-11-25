@@ -3,6 +3,24 @@ import { serverUrl } from "../consts"
 import OnOffSwitch from "./OnOffSwitch";
 import styles from "./Users.module.css"
 
+import ReactSelect from "react-select";
+
+function determineUserType(hallgato_kod, oktato_kod) {
+    const userType = {}
+    if (hallgato_kod && oktato_kod) {
+        userType.value = 3
+        userType.label = 'PHD'
+    } else if (hallgato_kod) {
+        userType.value = 1
+        userType.label = 'hallgató'
+    } else {
+        userType.value = 2
+        userType.label = 'oktató'
+    }
+    return userType
+}
+
+
 const Users = function () {
     const [users, setUsers] = useState([])
     const [showStudents, setShowStudents] = useState(true);
@@ -10,7 +28,7 @@ const Users = function () {
     const [newFirstname, setNewFirstname] = useState('');
     const [newLastname, setNewLastname] = useState('');
     const [newStartedTeachingOn, setNewStartedTeachingOn] = useState();
-    const [newSemesterCount, setNewSemesterCount] = useState();
+    const [newSemesterCount, setNewSemesterCount] = useState(1);
     const [isEditable, setIsEditable] = useState(false)
 
     const updateUsers = useCallback(async function () {
@@ -53,10 +71,10 @@ const Users = function () {
             keresztnev: newFirstname,
             vezeteknev: newLastname,
         }
-        if (showInstructors)
+        if (showInstructors && newStartedTeachingOn)
             body.tanitast_kezdte = newStartedTeachingOn
 
-        if (showStudents)
+        if (showStudents && newSemesterCount)
             body.szemeszterek = newSemesterCount
 
         return body;
@@ -127,6 +145,31 @@ const Users = function () {
         ]);
     }
 
+    async function onUserTypeChange(id, userTypeOption) {
+        const updateOptions = {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }
+        try {
+            console.log(`${serverUrl}/instructorOrStudent/${id}/usertype/${userTypeOption.value}`)
+            await fetch(`${serverUrl}/instructorOrStudent/${id}/usertype/${userTypeOption.value}`, updateOptions)
+            console.log('IRÁN2')
+
+            updateUsers();
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    const userTypeOptions = [
+        { value: 1, label: 'hallgató' },
+        { value: 2, label: 'oktató' },
+        { value: 3, label: 'PHD' }
+    ]
+
+
     const newUserButtonText = (showStudents && showInstructors) ?
         'Új PHD felvétele' :
         (showStudents) ? 'Új Hallgató felvétele' :
@@ -134,106 +177,123 @@ const Users = function () {
     const newUserButton = <button onClick={handleCreatUserButtonClick}>{newUserButtonText}</button>;
 
     return (
-        <>
-            <div>
-                <input
-                    type="checkbox"
-                    checked={showStudents}
-                    onChange={() => setShowStudents(!showStudents)}
-                />
-                Hallgatók
-            </div>
-
-            <div>
-                <input
-                    type="checkbox"
-                    checked={showInstructors}
-                    onChange={() => setShowInstructors(!showInstructors)}
-                />
-                Oktatók
-            </div>
-            Keresztnév
-            <input
-                value={newFirstname}
-                onChange={(event) => setNewFirstname(event.target.value)}
-            />
-            <br />
-            Vezetéknév
-            <input
-                value={newLastname}
-                onChange={(event) => setNewLastname(event.target.value)}
-            />
-            <br />
-            {showInstructors &&
-                <div>
-                    Tanítást kezdte:
+        <div >
+            <div >
+                <p className={styles.displayFilters}>
+                    Megjelenítési szűrők:
+                </p>
+                <div className={styles.displayFilters}>
                     <input
-                        type="date"
-                        value={newStartedTeachingOn}
-                        onChange={(event) => setNewStartedTeachingOn(event.target.value)}
+                        type="checkbox"
+                        checked={showStudents}
+                        onChange={() => setShowStudents(!showStudents)}
                     />
+                    Hallgatók
                 </div>
-            }
-            {showStudents &&
-                <div>
-                    Hanyadik szemesztere:
+
+                <div className={styles.displayFilters}>
                     <input
-                        type="number"
-                        value={newSemesterCount}
-                        onChange={(event) => setNewSemesterCount(event.target.value)}
+                        type="checkbox"
+                        checked={showInstructors}
+                        onChange={() => setShowInstructors(!showInstructors)}
                     />
+                    Oktatók
                 </div>
-            }
-            {(showInstructors || showStudents) &&
-                <div>{newUserButton}
-                    <div> Módosítás
-                        <OnOffSwitch checkedText="Be" notCheckedText="Ki" setIsChecked={setIsEditable} isChecked={isEditable} />
+            </div>
+            <div>
+                Keresztnév
+                <input
+                    value={newFirstname}
+                    onChange={(event) => setNewFirstname(event.target.value)}
+                />
+                <br />
+                Vezetéknév
+                <input
+                    value={newLastname}
+                    onChange={(event) => setNewLastname(event.target.value)}
+                />
+                <br />
+                {showInstructors &&
+                    <div>
+                        Tanítást kezdte:
+                        <input
+                            type="date"
+                            value={newStartedTeachingOn}
+                            onChange={(event) => setNewStartedTeachingOn(event.target.value)}
+                        />
                     </div>
-                    {(isEditable && showStudents) && <button onClick={() => handleNewSemesterButtonClick()}>Új tanév</button>}
-                    <div className={`${styles.grid}`}>
-                        {
-                            users.map((user, i) => {
-                                const userType = (user.hallgato_kod && user.oktato_kod) ? 'PHD' : (user.hallgato_kod) ? 'hallgató' : 'oktató'
-                                const tanitast_kezdteElement = (!user.oktato_kod) ? null : <div> {user.tanitast_kezdte} óta tanít</div>;
-                                const szemeszterekElement = (!user.hallgato_kod) ? null : <div> {user.szemeszterek}. szemeszter</div>;
-
-                                //TODO amikor újrarendereljük a usereket, akkor a default value nem updatelődik, ami baj
-                                const keresztnevInput = <input
-                                    type="text"
-                                    value={user.keresztnev}
-                                    onChange={(event) => onFieldUpdate(user.kod, { keresztnev: event.target.value })}
-                                    onBlur={(event) => updateFieldsInDB(user.kod, { keresztnev: event.target.value })}
-                                />
-                                const vezeteknevInput = <input
-                                    type="text"
-                                    value={user.vezeteknev}
-                                    onChange={(event) => onFieldUpdate(user.kod, { vezeteknev: event.target.value })}
-                                    onBlur={(event) => updateFieldsInDB(user.kod, { vezeteknev: event.target.value })}
-                                />
-                                return (
-                                    <div className={styles.userBox}>
-                                        {(!isEditable)
-                                            ? <div> {user.vezeteknev} {user.keresztnev}</div>
-                                            : <> {vezeteknevInput} {keresztnevInput} </>
-                                        }
-                                        <div> Kod: {user.kod} </div>
-                                        <div> {userType} felhasználó</div>
-                                        {szemeszterekElement}
-                                        {tanitast_kezdteElement}
-                                        {isEditable &&
-                                            <button className={styles.delete}
-                                                onClick={() => handleDeleteUserButtonClick(user.kod)}
-                                            >Törlés</button>}
-
-                                    </div>
-                                )
-                            })
-                        }
+                }
+                {showStudents &&
+                    <div>
+                        Hanyadik szemesztere:
+                        <input
+                            type="number"
+                            value={newSemesterCount}
+                            onChange={(event) => setNewSemesterCount(event.target.value)}
+                        />
                     </div>
-                </div>
-            }
-        </>
-    )
+                }
+                {(showInstructors || showStudents) &&
+                    <div>{newUserButton}
+                        <div> Módosítás
+                            <OnOffSwitch checkedText="Be" notCheckedText="Ki" setIsChecked={setIsEditable} isChecked={isEditable} />
+                        </div>
+                        {(isEditable && showStudents) && <button onClick={() => handleNewSemesterButtonClick()}>Új tanév</button>}
+                        <div className={`${styles.grid}`}>
+                            {
+                                users.map((user, i) => {
+                                    const userType = determineUserType(user.hallgato_kod, user.oktato_kod)
+
+                                    const tanitast_kezdteElement = (!user.oktato_kod) ? null : <div> {user.tanitast_kezdte} óta tanít</div>;
+                                    const szemeszterekElement = (!user.hallgato_kod) ? null : <div> {user.szemeszterek}. szemeszter</div>;
+
+                                    const userTypeSelect = <ReactSelect
+                                        options={userTypeOptions}
+                                        value={userType}
+                                        onChange={(userTypeOption) => onUserTypeChange(user.kod, userTypeOption)}
+                                    />
+                                    const keresztnevInput = <input
+                                        type="text"
+                                        value={user.keresztnev}
+                                        onChange={(event) => onFieldUpdate(user.kod, { keresztnev: event.target.value })}
+                                        onBlur={(event) => updateFieldsInDB(user.kod, { keresztnev: event.target.value })}
+                                    />
+                                    const vezeteknevInput = <input
+                                        type="text"
+                                        value={user.vezeteknev}
+                                        onChange={(event) => onFieldUpdate(user.kod, { vezeteknev: event.target.value })}
+                                        onBlur={(event) => updateFieldsInDB(user.kod, { vezeteknev: event.target.value })}
+                                    />
+
+                                    return (
+                                        <div key={i} className={styles.userBox}>
+                                            {(!isEditable)
+                                                ? <div> {user.vezeteknev} {user.keresztnev}</div>
+                                                : <> {vezeteknevInput} {keresztnevInput} </>
+                                            }
+                                            <div> Kod: {user.kod} </div>
+                                            {(!isEditable)
+                                                ? <div> {userType.label} felhasználó</div>
+                                                : userTypeSelect
+                                            }
+
+                                            {szemeszterekElement}
+                                            {tanitast_kezdteElement}
+                                            {isEditable &&
+                                                <button className={styles.delete}
+                                                    onClick={() => handleDeleteUserButtonClick(user.kod)}
+                                                >Törlés</button>}
+
+                                        </div>
+                                    )
+                                })
+                            }
+                        </div>
+
+                    </div>
+                }
+            </div>
+        </div>)
 }
 
 
