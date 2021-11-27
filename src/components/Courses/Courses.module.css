@@ -18,12 +18,28 @@
   border-radius: 5px;
 }
 
+.controllWrapper {
+  margin: 10px 0px;
+  width: fit-content;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 15px;
+  padding-right: 15px;
+  border-style: solid;
+  border-width: 2px;
+  border-radius: 5px;
+  border-color: #09689E;
+}
+
+.controllWrapper > * {
+  margin: 5px 0px;
+}
 
 .userBox button {
   grid-column: span 2;
 }
 
-.displayFilters {
+.inline {
   display: inline;
 }
 
@@ -54,7 +70,7 @@ button:hover,
 button:active {
   background-color: initial;
   background-position: 0 0;
-  color: #4b3cc1;
+  color: #09689E;
 }
 
 button:active {

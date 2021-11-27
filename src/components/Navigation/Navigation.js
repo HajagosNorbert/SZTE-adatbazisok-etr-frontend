@@ -6,8 +6,8 @@ function Navigation() {
     <div className={styles.navContainer}>
       <div className={styles.logo}>Adatbázisok etr</div>
       <nav>
-        <Link className={styles.navLink} to="/felhasznalok">Felhasználók</Link>
         <Link className={styles.navLink} to="/kurzusok">Kurzusok</Link>
+        <Link className={styles.navLink} to="/felhasznalok">Felhasználók</Link>
       </nav>
     </div>
   )

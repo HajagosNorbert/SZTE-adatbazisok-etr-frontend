@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { serverUrl } from "../consts"
-import OnOffSwitch from "./OnOffSwitch";
-import styles from "./Users.module.css"
+import { serverUrl } from "../../consts"
+import OnOffSwitch from "../OnOffSwitch/OnOffSwitch";
+import styles from "./Courses.module.css"
 
 import ReactSelect from "react-select";
 
@@ -21,14 +21,14 @@ function determineUserType(hallgato_kod, oktato_kod) {
 }
 
 
-const Users = function () {
+function Courses() {
     const [users, setUsers] = useState([])
     const [showStudents, setShowStudents] = useState(true);
     const [showInstructors, setShowInstructors] = useState(true);
     const [newFirstname, setNewFirstname] = useState('');
-    const [newLastname, setNewLastname] = useState('');
+    const [newName, setNewName] = useState('');
     const [newStartedTeachingOn, setNewStartedTeachingOn] = useState();
-    const [newSemesterCount, setNewSemesterCount] = useState(1);
+    const [newMaxStudents, setNewMaxStudents] = useState(30);
     const [isEditable, setIsEditable] = useState(false)
 
     const updateUsers = useCallback(async function () {
@@ -69,13 +69,13 @@ const Users = function () {
     function createNewUserBodyFromFilters() {
         const body = {
             keresztnev: newFirstname,
-            vezeteknev: newLastname,
+            vezeteknev: newName,
         }
         if (showInstructors && newStartedTeachingOn)
             body.tanitast_kezdte = newStartedTeachingOn
 
-        if (showStudents && newSemesterCount)
-            body.szemeszterek = newSemesterCount
+        if (showStudents && newMaxStudents)
+            body.szemeszterek = newMaxStudents
 
         return body;
     }
@@ -89,7 +89,7 @@ const Users = function () {
         }
     }
 
-    async function handleCreatUserButtonClick() {
+    async function handleCreateCourseButtonClick() {
         const postOptions = {
             method: 'POST',
             body: JSON.stringify(createNewUserBodyFromFilters()),
@@ -169,76 +169,49 @@ const Users = function () {
         { value: 3, label: 'PHD' }
     ]
 
+    const nevInput =
+        <div>
+            Kurzus neve:
+            <input
+                value={newName}
+                onChange={(event) => setNewName(event.target.value)}
+            />
+        </div>
+    const maxLetszamInput =
+        <div>
+            Max létszám:
+            <input
+                type="number"
+                value={newMaxStudents}
+                onChange={(event) => setNewMaxStudents(event.target.value)}
+            />
+        </div>
 
-    const newUserButtonText = (showStudents && showInstructors) ?
-        'Új PHD felvétele' :
-        (showStudents) ? 'Új Hallgató felvétele' :
-            'Új Oktató felvétele'
-    const newUserButton = <button onClick={handleCreatUserButtonClick}>{newUserButtonText}</button>;
+    const newUserButton = <button onClick={handleCreateCourseButtonClick}>Új kurzus felvétele</button>;
 
     return (
         <div >
-            <div >
-                <p className={styles.displayFilters}>
-                    Megjelenítési szűrők:
-                </p>
-                <div className={styles.displayFilters}>
-                    <input
-                        type="checkbox"
-                        checked={showStudents}
-                        onChange={() => setShowStudents(!showStudents)}
-                    />
-                    Hallgatók
-                </div>
-
-                <div className={styles.displayFilters}>
-                    <input
-                        type="checkbox"
-                        checked={showInstructors}
-                        onChange={() => setShowInstructors(!showInstructors)}
-                    />
-                    Oktatók
-                </div>
-            </div>
             <div>
-                Keresztnév
-                <input
-                    value={newFirstname}
-                    onChange={(event) => setNewFirstname(event.target.value)}
-                />
-                <br />
-                Vezetéknév
-                <input
-                    value={newLastname}
-                    onChange={(event) => setNewLastname(event.target.value)}
-                />
-                <br />
-                {showInstructors &&
-                    <div>
-                        Tanítást kezdte:
-                        <input
-                            type="date"
-                            value={newStartedTeachingOn}
-                            onChange={(event) => setNewStartedTeachingOn(event.target.value)}
-                        />
-                    </div>
-                }
-                {showStudents &&
-                    <div>
-                        Hanyadik szemesztere:
-                        <input
-                            type="number"
-                            value={newSemesterCount}
-                            onChange={(event) => setNewSemesterCount(event.target.value)}
-                        />
-                    </div>
-                }
+                <div className={styles.controllWrapper}>
+                    {nevInput}
+                    {showStudents && maxLetszamInput}
+                    {newUserButton}
+                </div>
                 {(showInstructors || showStudents) &&
-                    <div>{newUserButton}
-                        <div> Módosítás
-                            <OnOffSwitch checkedText="Be" notCheckedText="Ki" setIsChecked={setIsEditable} isChecked={isEditable} />
+                    <div>
+                        <div className={styles.controllWrapper}>
+                            <div>
+                                <div > Módosítás</div>
+
+                                <div >
+                                    <OnOffSwitch checkedText="Be" notCheckedText="Ki" setIsChecked={setIsEditable} isChecked={isEditable} />
+                                </div>
+                            </div>
+                            {(isEditable && showStudents) &&
+                                <button onClick={() => handleNewSemesterButtonClick()}>Új tanév</button>
+                            }
                         </div>
-                        {(isEditable && showStudents) && <button onClick={() => handleNewSemesterButtonClick()}>Új tanév</button>}
+                        <h2>Felhasználók</h2>
                         <div className={`${styles.grid}`}>
                             {
                                 users.map((user, i) => {
@@ -293,9 +266,9 @@ const Users = function () {
                     </div>
                 }
             </div>
-        </div>)
+        </div >)
 }
 
 
 
-export default Users;
+export default Courses;

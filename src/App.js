@@ -1,17 +1,21 @@
-import Users from './components/Users';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './App.css';
-import Navigation from './components/Navigation';
+import Users from './components/Users/Users';
+import Navigation from './components/Navigation/Navigation';
+import Courses from './components/Courses/Courses';
+
 
 function App() {
   return (
     <BrowserRouter>
       <Navigation />
-      <Routes>
-        <Route path="/" element={<Users />} />
-        <Route path="/felhasznalok" element={<Users />} />
-        <Route path="/kurzusok" element={<button />} />
-      </Routes>
+      <main>
+        <Routes>
+          <Route path="/" element={<Users />} />
+          <Route path="/felhasznalok" element={<Users />} />
+          <Route path="/kurzusok" element={<Courses />} />
+        </Routes>
+      </main>
     </BrowserRouter>
   );
 }
