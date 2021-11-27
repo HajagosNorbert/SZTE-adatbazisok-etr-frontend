@@ -38,13 +38,13 @@ const Users = function () {
 
     const updateUsers = useCallback(async function () {
 
-
         if (!(showStudents || showInstructors)) {
             setIsEditable(false)
             return setUsers([])
         }
         try {
             const res = await fetch(serverUrl + '/instructorOrStudent');
+            await alertIfErrorsExist(res, alert);
             const users = await res.json();
             const filteredAndFormatedUsers = users.filter(user => {
                 if (user.hallgato_kod && user.oktato_kod) return true
@@ -62,7 +62,7 @@ const Users = function () {
         } catch (e) {
             console.log(e)
         }
-    }, [showStudents, showInstructors]);
+    }, [showStudents, showInstructors, alert]);
 
     useEffect(() => {
         updateUsers();
@@ -88,7 +88,8 @@ const Users = function () {
 
     async function handleNewSemesterButtonClick() {
         try {
-            await fetch(serverUrl + '/student/newsemester');
+            const res = await fetch(serverUrl + '/student/newsemester');
+            await alertIfErrorsExist(res, alert);
             updateUsers();
         } catch (e) {
             console.log(e)
@@ -121,6 +122,7 @@ const Users = function () {
         }
         try {
             const res = await fetch(serverUrl + '/instructorOrStudent/' + userId, delOptions)
+            await alertIfErrorsExist(res, alert);
 
             updateUsers();
         } catch (error) {
@@ -137,7 +139,8 @@ const Users = function () {
             }
         }
         try {
-            await fetch(serverUrl + '/user/' + id, updateOptions)
+            const res = await fetch(serverUrl + '/user/' + id, updateOptions)
+            await alertIfErrorsExist(res, alert);
             updateUsers();
         } catch (error) {
             console.error(error);
@@ -161,10 +164,9 @@ const Users = function () {
             }
         }
         try {
-            console.log(`${serverUrl}/instructorOrStudent/${id}/usertype/${userTypeOption.value}`)
-            await fetch(`${serverUrl}/instructorOrStudent/${id}/usertype/${userTypeOption.value}`, updateOptions)
+            const res = await fetch(`${serverUrl}/instructorOrStudent/${id}/usertype/${userTypeOption.value}`, updateOptions)
             console.log('IRÁN2')
-
+            await alertIfErrorsExist(res, alert);
             updateUsers();
         } catch (error) {
             console.error(error);
@@ -246,6 +248,7 @@ const Users = function () {
             </div>
             <div>
                 <div className={styles.controllWrapper}>
+                    <h4>Új felhasználó szűrők alapján </h4>
                     {vezeteknevInput}
                     {keresztnevInput}
                     {showInstructors && tanitastKezdteInput}
