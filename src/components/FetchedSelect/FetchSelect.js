@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { serverUrl } from "../../consts"
 
 import ReactSelect from "react-select";
@@ -11,22 +11,21 @@ function FetchedSelecet({ selectedOption, setSelectedOption, endpoint, mapperToO
 
   const [options, setOptions] = useState([])
 
-
-  const updateOptions = useCallback(async function () {
-    try {
-      const res = await fetch(`${serverUrl}/${endpoint}`);
-      await alertIfErrorsExist(res, alert);
-      const entities = await res.json();
-      setOptions(entities.map(mapperToOptionsFormat))
-      setSelectedOption(options[0])
-    } catch (e) {
-      console.log(e)
-    }
-  }, [])
-
   useEffect(() => {
+    async function updateOptions() {
+      try {
+        const res = await fetch(`${serverUrl}/${endpoint}`);
+        await alertIfErrorsExist(res, alert);
+        const entities = await res.json();
+        setOptions(entities.map(mapperToOptionsFormat))
+        setSelectedOption(null)
+      } catch (e) {
+        console.log(e)
+      }
+    }
+
     updateOptions()
-  }, [updateOptions])
+  }, [alert, endpoint, mapperToOptionsFormat, setSelectedOption])
 
   return (
     <ReactSelect

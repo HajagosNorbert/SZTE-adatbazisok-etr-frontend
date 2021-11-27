@@ -33,7 +33,7 @@ const Users = function () {
     const [newFirstname, setNewFirstname] = useState('');
     const [newLastname, setNewLastname] = useState('');
     const [newStartedTeachingOn, setNewStartedTeachingOn] = useState();
-    const [newSemesterCount, setNewSemesterCount] = useState(1);
+    const [newSemesterCount, setNewSemesterCount] = useState('');
     const [isEditable, setIsEditable] = useState(false)
 
     const updateUsers = useCallback(async function () {
@@ -210,6 +210,7 @@ const Users = function () {
             <input
                 type="number"
                 value={newSemesterCount}
+                placeholder={1}
                 onChange={(event) => setNewSemesterCount(event.target.value)}
             />
         </div>

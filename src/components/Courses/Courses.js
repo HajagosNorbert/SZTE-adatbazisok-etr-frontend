@@ -16,7 +16,7 @@ const instructorToInstructorOption = instructor => ({ value: instructor.kod, lab
 function Courses() {
     const [courses, setCourses] = useState(mockdb)
     const [newName, setNewName] = useState('');
-    const [newMaxStudents, setNewMaxStudents] = useState(30);
+    const [newMaxStudents, setNewMaxStudents] = useState('');
     const [isEditable, setIsEditable] = useState(false)
 
 
@@ -29,7 +29,7 @@ function Courses() {
     function createNewCourseBody() {
         return {
             nev: newName,
-            max_letszam: newMaxStudents,
+            max_letszam: newMaxStudents || undefined,
             oktato_kod: selectedInstructorOption?.value,
             epulet_kod: selectedBuildingOption?.value,
             terem_kod: selectedClassroomOption?.value
@@ -55,6 +55,25 @@ function Courses() {
         }
     }
 
+    const nevInput =
+        <div>
+            Kurzus neve:
+            <input
+                value={newName}
+                onChange={(event) => setNewName(event.target.value)}
+            />
+        </div>
+    const maxLetszamInput =
+        <div>
+            Max létszám:
+            <input
+                type="number"
+                value={newMaxStudents}
+                placeholder={30}
+                onChange={(event) => setNewMaxStudents(event.target.value)}
+            />
+        </div>
+
     const instructorSelect = <FetchedSelecet
         selectedOption={selectedInstructorOption}
         setSelectedOption={setSelectedInstructorOption}
@@ -78,25 +97,12 @@ function Courses() {
         mapperToOptionsFormat={classroomToClassroomOption}
         placeholder='Terem'
     />
-    const nevInput =
-        <div>
-            Kurzus neve:
-            <input
-                value={newName}
-                onChange={(event) => setNewName(event.target.value)}
-            />
-        </div>
-    const maxLetszamInput =
-        <div>
-            Max létszám:
-            <input
-                type="number"
-                value={newMaxStudents}
-                onChange={(event) => setNewMaxStudents(event.target.value)}
-            />
-        </div>
 
-    const newCourseButton = <button onClick={handleCreateCourseButtonClick}>Új kurzus felvétele</button>;
+    const newCourseButton =
+        <button onClick={handleCreateCourseButtonClick}>
+            Új kurzus felvétele
+        </button>
+
     return (
         <div >
             <div>
