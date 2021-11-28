@@ -6,7 +6,7 @@ import { alertIfErrorsExist } from "../../helpers/helpers";
 import { useAlert } from 'react-alert'
 
 
-function FetchedSelecetForInstructors({ selectedOption, setSelectedOption, endpoint, mapperToOptionsFormat, ...props }) {
+function FetchedSelecet({ selectedOption, afterOptionSelect1, afterOptionSelect2, endpoint, mapperToOptionsFormat, kod, ...props }) {
   const alert = useAlert()
 
   const [options, setOptions] = useState([])
@@ -19,22 +19,25 @@ function FetchedSelecetForInstructors({ selectedOption, setSelectedOption, endpo
         const entities = await res.json();
         const newOptions = entities.map(mapperToOptionsFormat)
         setOptions(newOptions)
-        await setSelectedOption(null)
       } catch (e) {
         console.log(e)
       }
     }
 
     updateOptions()
-  }, [alert, endpoint, mapperToOptionsFormat, setSelectedOption])
+  }, [alert, endpoint, mapperToOptionsFormat])
 
   return (
     <ReactSelect
       options={options}
       value={selectedOption}
-      onChange={(newOption) => setSelectedOption(newOption)}
+      onChange={async (newOption) => {
+        afterOptionSelect1()
+        console.log({ newOption })
+        afterOptionSelect2(kod, { oktato_kod: newOption.value })
+      }}
       {...props}
     />)
 }
 
-export default FetchedSelecetForInstructors
+export default FetchedSelecet

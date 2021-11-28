@@ -10,7 +10,7 @@
   display: grid;
   
   grid-column-gap: 6px;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(1, 1fr);
   padding: 5px;
   border: 1px solid #09689E;
   background-color: #84d2f9;
@@ -36,7 +36,7 @@
 }
 
 .userBox button {
-  grid-column: span 2;
+  grid-column: span 1;
 }
 
 .inline {
