@@ -165,7 +165,6 @@ const Users = function () {
         }
         try {
             const res = await fetch(`${serverUrl}/instructorOrStudent/${id}/usertype/${userTypeOption.value}`, updateOptions)
-            console.log('IRÁN2')
             await alertIfErrorsExist(res, alert);
             updateUsers();
         } catch (error) {

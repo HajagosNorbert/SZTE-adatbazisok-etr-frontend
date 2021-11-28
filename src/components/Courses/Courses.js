@@ -6,6 +6,7 @@ import { useAlert } from 'react-alert'
 import { alertIfErrorsExist } from "../../helpers/helpers";
 import FetchedSelecetForInstructors from "../FetchedSelect/FetchSelectForInstructors";
 import FetchedSelecet from "../FetchedSelect/FetchSelect";
+import Select from 'react-select'
 
 const buildingToBuildingOption = building => ({ value: building.kod, label: `${building.kod} | ${building.nev}` })
 const classroomToClassroomOption = classroom => ({ value: classroom.kod, label: `${classroom.kod}, ${classroom.epulet_kod}` })
@@ -24,6 +25,7 @@ function Courses() {
     const [selectedClassroomOption, setSelectedClassroomOption] = useState(null)
     const [selectedInstructorOption, setSelectedInstructorOption] = useState(null)
 
+    const [studentOptions, setStudentOptions] = useState([])
     const alert = useAlert()
 
 
@@ -42,7 +44,6 @@ function Courses() {
                     }
                     const res = await fetch(serverUrl + '/instructor/' + course.oktato_kod)
                     const instructor = await res.json()
-                    console.log({ instructor })
                     course.instructorOption = {
                         value: instructor.oktato_kod,
                         label: `${instructor.vezeteknev} ${instructor.keresztnev}`
@@ -51,29 +52,44 @@ function Courses() {
                 })
             )
 
-            // const coursesWithStudents = await Promise.all(
-            //     coursesWithInstructor.map(async (course) => {
-            //         const res = await fetch(serverUrl + '/instructor/' + course.oktato_kod)
-            //         const { oktato_kod, ...instructor } = await res.json()
-            //         delete course.oktato_kod
-            //         course.oktato = instructor
-            //         return course
-            //     })
-            // )
+            const coursesWithStudentOptions = await Promise.all(
+                coursesWithInstructorOptions.map(async (course) => {
+                    const res = await fetch(`${serverUrl}/course/${course.kod}/students`)
+                    const students = await res.json()
+                    course.studentOptions = students.map(stud => ({
+                        value: stud.hallgato_kod,
+                        label: `${stud.vezeteknev} ${stud.keresztnev}`
+                    }))
 
+                    return course
+                })
+            )
 
-
-            console.log({ coursesWithInstructorOptions })
-
-            setCourses(coursesWithInstructorOptions)
+            setCourses(coursesWithStudentOptions)
         } catch (e) {
             console.log(e)
         }
     }, [alert, setCourses, mostExperiencedInstructor])
 
     useEffect(() => {
+        async function updateStudentOptions() {
+            try {
+                const res = await fetch(serverUrl + '/student')
+                await alertIfErrorsExist(res, alert);
+                const students = await res.json()
+                const newStudentOptions = students.map(stud => ({
+                    value: stud.kod,
+                    label: `${stud.vezeteknev} ${stud.keresztnev} - ${stud.kod}`
+                }))
+                setStudentOptions(newStudentOptions);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        updateStudentOptions()
         updateCourses();
-    }, [updateCourses])
+    }, [updateCourses, alert])
 
 
 
@@ -130,9 +146,8 @@ function Courses() {
             ...courses.slice(index + 1)
         ]);
     }
-    //TODO: a nemtriviális lekérdezés mutatkozzon meg a weboldalon
 
-    const updateFieldsInDB = useCallback(async function (id, fields) {
+    const updateFieldsInDB = useCallback(async function (endpointEnding, fields) {
         const updateOptions = {
             method: 'PATCH',
             body: JSON.stringify(fields),
@@ -141,7 +156,7 @@ function Courses() {
             }
         }
         try {
-            const res = await fetch(serverUrl + '/course/' + id, updateOptions)
+            const res = await fetch(serverUrl + '/course/' + endpointEnding, updateOptions)
             await alertIfErrorsExist(res, alert);
             updateCourses();
         } catch (error) {
@@ -250,8 +265,22 @@ function Courses() {
                                 placeholder='Oktató'
                             />
 
+                            const hallgatokSelect = <Select
+                                isMulti={true}
+                                options={studentOptions}
+                                value={course.studentOptions}
+                                placeholder='Hallgatók'
+                                onChange={(newOptions) =>
+                                    onFieldUpdate(course.kod, { studentOptions: newOptions })
+                                }
+                                onBlur={async (event) =>
+                                    await updateFieldsInDB(`${course.kod}/students`, course.studentOptions.map(option => parseInt(option.value)))
+                                }
+                            />
+
                             return (
                                 <div key={i} className={styles.userBox} >
+
                                     {(!isEditable)
                                         ? <>
                                             <div> {course.nev}</div>
@@ -260,15 +289,20 @@ function Courses() {
                                         </>
                                         : <>
                                             <div>{nevInput}</div>
+                                            Oktató:
                                             <div>{oktatoSelect}</div>
                                             <div>Hallgatók száma:  {course.letszam}</div>
                                         </>
                                     }
-                                    {isEditable &&
+                                    {isEditable && <>
+                                        Hallgatók:
+                                        <div>{hallgatokSelect}</div>
+
                                         <button className={styles.delete}
                                             onClick={() => handleDeleteCourseButtonClick(course.kod)}
-                                        >Törlés</button>}
-
+                                        >Törlés</button>
+                                    </>
+                                    }
 
                                 </div>
                             )

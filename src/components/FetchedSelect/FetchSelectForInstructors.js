@@ -33,7 +33,6 @@ function FetchedSelecet({ selectedOption, afterOptionSelect1, afterOptionSelect2
       value={selectedOption}
       onChange={async (newOption) => {
         afterOptionSelect1()
-        console.log({ newOption })
         afterOptionSelect2(kod, { oktato_kod: newOption.value })
       }}
       {...props}
