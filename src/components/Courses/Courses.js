@@ -64,7 +64,7 @@ function Courses() {
                     return course
                 })
             )
-
+            console.log(coursesWithStudentOptions);
             setCourses(coursesWithStudentOptions)
         } catch (e) {
             console.log(e)
@@ -285,15 +285,15 @@ function Courses() {
                                         ? <>
                                             <div> {course.nev}</div>
                                             <div>Oktató: {course?.instructorOption?.label ?? 'Nincs'}</div>
-                                            <div>Hallgatók száma:  {course.letszam}</div>
                                         </>
                                         : <>
                                             <div>{nevInput}</div>
                                             Oktató:
                                             <div>{oktatoSelect}</div>
-                                            <div>Hallgatók száma:  {course.letszam}</div>
                                         </>
                                     }
+                                    <div>Hallgatók száma: {course.letszam} / {course.max_letszam}</div>
+                                    <div>Helyszín: {course.terem_kod}, {course.epulet_kod}</div>
                                     {isEditable && <>
                                         Hallgatók:
                                         <div>{hallgatokSelect}</div>
